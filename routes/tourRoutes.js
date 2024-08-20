@@ -1,72 +1,55 @@
-const express = require('express');
+import express from "express";
+import * as tourController from "./../controllers/tourController.js";
+import { protect, restrictTo } from "./../controllers/authController.js";
+import reviewRouter from "./../routes/reviewRoutes.js";
 
 const router = express.Router();
-const tourController = require('../controllers/tourController');
-const authController = require('../controllers/authController');
 
-const reviewRouter = require('./reviewRoutes');
+// POST /tour/32434fs35/reviews
+// GET /tour/32434fs35/reviews
+// GET /tour/32434fs35/reviews/97987dssad8
 
-//it is called a param middleware it only runs with params mentioned here only id.
-// router.param('id', (req, res, next, val) => {
-//   console.log(`this is my id = ${val}`);
-//   next();
-// });
+// router.route('/:tourId/reviews').post(protect, restrictTo('user'), reviewController.createReview);
 
-// yhm ye niche wala isiliye nhi use kr rhe kyuki hme tour router mai review controller lana pdla jisse confusion bd skta
+router.use("/:tourId/reviews", reviewRouter);
 
-// router
-//   .route('/:tourId/reviews')
-//   .post(
-//     authController.protect,
-//     authController.restrictTo('user'),
-//     reviewController.addreview,
-//   );
-// ye app.use jesa hi hai ab jo bhi iss prakar ka URL hoga vo sidhe reviewRouter se
-// redirect hoga
+// router.param('id', checkID);
+
+// Create a checkBody middleware
+// Check if body contains the name and price property
+// If not, send back 400 (bad requst)
+// Add it to the post handler stack
+
+router.route("/top-5-cheap").get(tourController.aliasTopTours, tourController.getAllTours);
+
+router.route("/tour-stats").get(tourController.getTourStats);
 router
-  .route('/')
-  .get(tourController.getalltours)
-  .post(
-    authController.protect,
-    authController.restrictTo('admin', 'lead-guide'),
-    tourController.addtour,
-  );
-router
-  .route('/:id')
-  .get(tourController.gettourbyid)
-  .patch(
-    authController.protect,
-    authController.restrictTo('admin', 'lead-guide'),
-    tourController.updatetour,
-  )
-  .delete(
-    authController.protect,
-    authController.restrictTo('admin', 'lead-guide'), //sirf yhi roles access kr skte hai
-    tourController.deletetour,
-  );
+  .route("/monthly-plan/:year")
+  .get(protect, restrictTo("admin", "lead-guide", "guide"), tourController.getMonthlyPlan);
 
 router
-  .route('/top-5-cheapest')
-  .get(tourController.aliasTopTours, tourController.getalltours);
-
-router
-  .route('/tours-within/:distance/center/:latlng/unit/:unit')
+  .route("/tours-within/:distance/center/:latlng/unit/:unit")
   .get(tourController.getToursWithin);
+// /tours-within?distance=233&center=-40,45&unit=mi
+// /tours-within/233/center/-40,45/unit/mi
 
-router.route('/distances/:latlng/unit/:unit').get(tourController.getDistance);
-
-//ye vo saare tours hai jisme tour or review dono ka use hai
-
-router.use('/:tourId/reviews', reviewRouter);
-
-router.route('/Tour-stats').get(tourController.getStats);
+router.route("/distances/:latlng/unit/:unit").get(tourController.getDistances);
 
 router
-  .route('/monthly-plan/:year')
-  .get(
-    authController.protect,
-    authController.restrictTo('admin', 'lead-guide', 'guide'),
-    tourController.getMonthlyPlan,
-  );
+  .route("/")
+  .get(tourController.getAllTours)
+  .post(protect, restrictTo("admin", "lead-guide"), tourController.createTour);
 
-module.exports = router;
+router
+  .route("/:id")
+  .get(tourController.getTour)
+  .patch(
+    protect,
+    restrictTo("admin", "lead-guide"),
+    tourController.uploadTourImages,
+    tourController.resizeTourImages,
+    tourController.updateTour
+  )
+  .delete(protect, restrictTo("admin", "lead-guide"), tourController.deleteTour);
+
+export default router;

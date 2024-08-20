@@ -1,23 +1,16 @@
-const Review = require('../models/reviewModel');
-const factory = require('./handlerFactory');
+import Review from "./../models/reviewModel.js";
+// import catchAsync from './../utils/catchAsync.js';
+import * as factory from "./handlerFactory.js";
 
-const catchAsync = require('../utils/catchAsync');
-
-// isme hmne dono kaam krdiye jese agar
-//kisi ne dala /:tourId/reviews    ?? /reviews
-// to hoga ye kisi second req mai tourId nhi hogi to apne aap filter={}
-//hoga to saare reviews aayenge or first URL mai tour Id k hisab se selection hoga
-
-exports.getallReviews = factory.getAll(Review);
-
-//exports.getReview = factory.getOne(Review, { path: 'reviews' });
-exports.setTourUserIds = (req, res, next) => {
-  //Allow nested routes
+export const setTourUserIds = (req, res, next) => {
+  // Allow nested routes
   if (!req.body.tour) req.body.tour = req.params.tourId;
   if (!req.body.user) req.body.user = req.user.id;
   next();
 };
-exports.getReview = factory.getOne(Review);
-exports.addreview = factory.createOne(Review);
-exports.deleteReview = factory.deleteOne(Review);
-exports.updateReview = factory.updateOne(Review);
+
+export const getAllReviews = factory.getAll(Review);
+export const getlReview = factory.getOne(Review);
+export const createReview = factory.createOne(Review);
+export const updateReview = factory.updateOne(Review);
+export const deleteReview = factory.deleteOne(Review);
